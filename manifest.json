@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "Nuvio Quick Add",
+  "version": "1.2.3",
+  "description": "Add movies and series from Letterboxd, IMDb, TMDB, download sites, or poster grids directly to Trakt Watchlist or Nuvio Library.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Nuvio Quick Add",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "contextMenus",
+    "scripting",
+    "alarms",
+    "declarativeNetRequest",
+    "cookies",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "https://trakt.tv/*",
+    "https://app.trakt.tv/*",
+    "https://*.trakt.tv/*",
+    "https://api.trakt.tv/*",
+    "https://api.nuvio.tv/*",
+    "https://v3-cinemeta.strem.io/*",
+    "https://api.themoviedb.org/*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://app.trakt.tv/*", "https://og.trakt.tv/*", "https://trakt.tv/*"],
+      "js": ["src/content/trakt-page-hook.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://app.trakt.tv/*", "https://og.trakt.tv/*", "https://trakt.tv/*"],
+      "js": ["src/content/trakt-bridge-relay.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/content/loader.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/content/content-app.js",
+        "src/shared/constants.js",
+        "src/shared/title-cleaner.js",
+        "src/shared/extractor.js",
+        "src/shared/poster-detector.js"
+      ],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ]
+}

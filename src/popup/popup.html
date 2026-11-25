@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nuvio Quick Add</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="../../icons/icon-48.png" alt="Nuvio" class="brand-icon">
+        <div>
+          <h1 class="brand-title">Nuvio Quick Add</h1>
+          <p id="account-subtitle" class="brand-sub">Checking session…</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <select id="profile-select" class="profile-select hidden" aria-label="Nuvio Profile"></select>
+        <button id="btn-settings" type="button" class="icon-btn" title="Settings" aria-label="Settings">⚙</button>
+        <button id="btn-logout" type="button" class="icon-btn hidden" title="Disconnect account" aria-label="Disconnect account">⎋</button>
+      </div>
+    </header>
+
+    <div id="status-banner" class="banner hidden" role="status"></div>
+
+    <!-- Auth / Connect View -->
+    <section id="auth-view" class="stack hidden">
+      <!-- Zero-Setup Trakt Web Session Card -->
+      <div id="trakt-web-card" class="panel stack hidden">
+        <div class="section-head">
+          <h2>Connect Trakt.tv (No API Key Needed)</h2>
+        </div>
+        <p class="lead">
+          Sign in normally on <strong>trakt.tv</strong> in this browser — no Developer App, no API keys, and no GitHub account required.
+        </p>
+        <div class="row-gap">
+          <button id="btn-open-trakt-signin" type="button" class="btn primary">Sign in on trakt.tv</button>
+          <button id="btn-check-trakt-web" type="button" class="btn secondary">I Signed In</button>
+        </div>
+      </div>
+
+      <!-- Optional Trakt API Device Auth Card (Advanced) -->
+      <div id="trakt-auth-card" class="panel stack hidden">
+        <div class="section-head">
+          <h2>Connect Trakt API App</h2>
+        </div>
+
+        <div id="trakt-step-credentials" class="stack">
+          <p class="lead">
+            Enter your Trakt OAuth App Client ID, or switch to <strong>Trakt.tv Web Session</strong> in Settings for zero-setup linking.
+          </p>
+          <form id="trakt-start-form" class="stack">
+            <label class="field">
+              <span>Trakt Client ID</span>
+              <input id="trakt-client-id" type="text" required placeholder="Paste your Trakt Client ID">
+            </label>
+
+            <details class="advanced-box">
+              <summary>Optional: Client Secret (legacy Trakt apps only)</summary>
+              <div class="stack compact">
+                <label class="field">
+                  <span>Trakt Client Secret</span>
+                  <input id="trakt-client-secret" type="password" placeholder="Leave blank for newer Trakt apps">
+                </label>
+              </div>
+            </details>
+
+            <button id="btn-trakt-start" type="submit" class="btn primary full">Connect with Trakt Code</button>
+          </form>
+        </div>
+
+        <div id="trakt-step-code" class="stack hidden">
+          <p class="lead">Enter this code at <strong>trakt.tv/activate</strong> to authorize your account:</p>
+          <div class="code-box">
+            <span id="trakt-user-code" class="device-code">----</span>
+          </div>
+          <p id="trakt-poll-status" class="muted-state">Waiting for activation…</p>
+          <div class="row-gap">
+            <button id="btn-trakt-activate" type="button" class="btn primary">Copy &amp; Open Activate</button>
+            <button id="btn-trakt-cancel" type="button" class="btn secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nuvio Cloud Connect Card -->
+      <div id="nuvio-auth-card" class="panel stack hidden">
+        <div class="section-head">
+          <h2>Sign in to Nuvio Cloud</h2>
+        </div>
+        <p class="lead">Sign in with your Nuvio account to sync directly to Nuvio's standalone library.</p>
+        <form id="login-form" class="stack">
+          <label class="field">
+            <span>Email</span>
+            <input id="login-email" type="email" required autocomplete="email" placeholder="you@example.com">
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="login-password" type="password" required autocomplete="current-password" placeholder="••••••••">
+          </label>
+
+          <details class="advanced-box">
+            <summary>Self-hosted / Custom Nuvio Server</summary>
+            <div class="stack compact">
+              <label class="field">
+                <span>Server Base URL</span>
+                <input id="login-base-url" type="url" placeholder="https://api.nuvio.tv">
+              </label>
+              <label class="field">
+                <span>Publishable Key</span>
+                <input id="login-pub-key" type="text" placeholder="sb_publishable_...">
+              </label>
+            </div>
+          </details>
+
+          <button id="btn-login" type="submit" class="btn primary full">Sign in to Nuvio</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Main View -->
+    <main id="main-view" class="stack hidden">
+      <section class="panel">
+        <div class="section-head">
+          <h2>Detected on This Page</h2>
+          <button id="btn-rescan" type="button" class="link-btn">Rescan</button>
+        </div>
+
+        <div id="detected-loading" class="muted-state">Scanning current page…</div>
+
+        <div id="detected-empty" class="muted-state hidden">
+          No single movie detected on this page. Use the <strong>+</strong> buttons on posters, search below, or highlight a title and right-click → <strong>Add to Trakt Watchlist</strong>.
+        </div>
+
+        <div id="detected-card" class="media-card hidden">
+          <img id="detected-poster" class="poster" alt="Poster">
+          <div class="media-info">
+            <div class="media-title-row">
+              <h3 id="detected-title" class="media-title"></h3>
+            </div>
+            <p id="detected-meta" class="media-meta"></p>
+            <div id="detected-badges" class="badges"></div>
+            <button id="btn-detected-action" type="button" class="btn primary full">+ Add to Trakt Watchlist</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Search &amp; Add Any Title</h2>
+        </div>
+        <form id="search-form" class="search-row">
+          <input id="search-input" type="search" placeholder="Search movie or series (e.g. Inception 2010)" aria-label="Search movie or series">
+          <button type="submit" class="btn secondary">Search</button>
+        </form>
+        <div id="search-results" class="results-list"></div>
+      </section>
+    </main>
+
+    <!-- Settings View -->
+    <section id="settings-view" class="panel hidden">
+      <div class="section-head">
+        <h2>Settings</h2>
+        <button id="btn-close-settings" type="button" class="link-btn">Back</button>
+      </div>
+
+      <form id="settings-form" class="stack">
+        <label class="field">
+          <span>Sync Destination</span>
+          <select id="set-sync-target">
+            <option value="trakt_web">Trakt.tv Web Session (Recommended — No API Key)</option>
+            <option value="nuvio">Nuvio Cloud Library only</option>
+            <option value="both">Both Trakt Watchlist &amp; Nuvio Library</option>
+            <option value="trakt">Trakt Official API (Requires Developer App)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>In-page Buttons</span>
+          <select id="set-floating-mode">
+            <option value="all_detected">Poster Buttons + Floating Pill (Recommended)</option>
+            <option value="posters_only">Poster Buttons only</option>
+            <option value="pill_only">Floating Pill only</option>
+            <option value="letterboxd_only">Letterboxd only</option>
+            <option value="disabled">Disabled (Popup &amp; Right-click only)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Preferred Library ID Format</span>
+          <select id="set-id-format">
+            <option value="imdb">IMDb ID (tt... — Best for Cinemeta/Addons)</option>
+            <option value="tmdb">TMDB ID (tmdb:... — When available)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Optional TMDB API Key / Read Token</span>
+          <input id="set-tmdb-key" type="password" placeholder="Optional — improves obscure/localized matches">
+        </label>
+
+        <details class="advanced-box">
+          <summary>Advanced: Trakt API App &amp; Nuvio Server</summary>
+          <div class="stack compact">
+            <label class="field">
+              <span>Trakt Client ID (API mode only)</span>
+              <input id="set-trakt-client-id" type="text" placeholder="Optional — only if using Trakt Official API">
+            </label>
+            <label class="field">
+              <span>Trakt Client Secret</span>
+              <input id="set-trakt-client-secret" type="password" placeholder="Optional">
+            </label>
+            <label class="field">
+              <span>Nuvio Server URL</span>
+              <input id="set-base-url" type="url" required placeholder="https://api.nuvio.tv">
+            </label>
+            <label class="field">
+              <span>Nuvio Publishable Key</span>
+              <input id="set-pub-key" type="text" required placeholder="sb_publishable_...">
+            </label>
+          </div>
+        </details>
+
+        <div class="row-gap">
+          <button type="submit" class="btn primary">Save Settings</button>
+          <button id="btn-restore-sites" type="button" class="btn secondary">Restore Hidden Sites</button>
+        </div>
+      </form>
+    </section>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
